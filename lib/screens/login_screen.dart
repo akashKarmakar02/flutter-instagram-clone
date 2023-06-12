@@ -34,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Flexible(flex: 2, child: Container()),
               // svg image
               SvgPicture.asset(
                 'assets/ic_instagram.svg',
@@ -54,9 +55,52 @@ class _LoginScreenState extends State<LoginScreen> {
                 textInputType: TextInputType.text,
                 textEditingControl: _passwordController,
                 isPass: true,
-              )
+              ),
+              const SizedBox(height: 24),
               // button for login
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: const ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(4),
+                        ),
+                      ),
+                    color: blueColor
+                  ),
+                  child: const Text('Login'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Flexible(flex: 2, child: Container()),
               // Transitioning to password
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: const Text("Don't Have An Account?"),
+                  ),
+                  GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Text(
+                          'Sign Up',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+
             ],
           ),
         ),
