@@ -21,7 +21,6 @@ class AuthService {
       if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty) {
         UserCredential credential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
-        print(credential.user!.uid);
 
         // add user to db
         await _firestore.collection('users').doc(credential.user!.uid).set({
