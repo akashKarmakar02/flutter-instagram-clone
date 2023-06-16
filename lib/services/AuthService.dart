@@ -40,4 +40,31 @@ class AuthService {
     }
     return res;
   }
+
+  Future<String> loginUser({
+    required String email,
+    required String password
+}) async {
+    String res = "Some error occurred";
+
+    try {
+      if (email.isNotEmpty || password.isNotEmpty) {
+       await _auth.signInWithEmailAndPassword(email: email, password: password);
+       res = "success";
+      } else {
+        res = "Please enter all the fields";
+      }
+    } on FirebaseAuthException catch(e) {
+      if (e.code == "user-not-found") {
+        res = "This email is not registered";
+      } else if (e.code == "wrong-password") {
+        res = "Wrong password";
+      }
+    }
+    catch(e) {
+      res = e.toString();
+    }
+
+    return res;
+  }
 }
