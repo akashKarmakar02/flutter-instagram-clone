@@ -28,21 +28,25 @@ class _AddPostScreenState extends State<AddPostScreen> {
         ),
         title: const Text("Post to"),
         actions: [
-          TextButton(
-              onPressed: () {},
-              child: const Text(
-                "Post",
-                style: TextStyle(
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              )
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: TextButton(
+                onPressed: () {},
+                child: const Text(
+                  "Post",
+                  style: TextStyle(
+                    color: Colors.blueAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                )
+            ),
           )
         ],
       ),
       body: Column(
         children: [
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
