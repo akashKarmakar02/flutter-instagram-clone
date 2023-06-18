@@ -1,5 +1,13 @@
+import 'dart:typed_data';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/models/user.dart';
+import 'package:instagram_clone/provider/user_provider.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
+import 'package:provider/provider.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -9,17 +17,92 @@ class AddPostScreen extends StatefulWidget {
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
+  Uint8List? _file;
+  final TextEditingController _descriptionController = TextEditingController();
+
+  _selectImage(BuildContext context) async {
+    bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return !isIOS? SimpleDialog(
+            title: const Text('Create a Post'),
+            children: <Widget>[
+              SimpleDialogOption(
+                  padding: const EdgeInsets.all(20),
+                  child: const Text('Take a photo'),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    Uint8List file = await pickImage(ImageSource.camera);
+                    setState(() {
+                      _file = file;
+                    });
+                  }),
+              SimpleDialogOption(
+                  padding: const EdgeInsets.all(20),
+                  child: const Text('Choose from Gallery'),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    Uint8List file = await pickImage(ImageSource.gallery);
+                    setState(() {
+                      _file = file;
+                    });
+                  }),
+              SimpleDialogOption(
+                padding: const EdgeInsets.all(20),
+                child: const Text("Cancel"),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ) : CupertinoAlertDialog(
+            title: const Text("Create a post"),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text("Take a photo"),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  Uint8List file = await pickImage(ImageSource.camera);
+                  setState(() {
+                    _file = file;
+                  });
+                },
+              ),
+              CupertinoDialogAction(
+                child: const Text("Choose from gallery"),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  Uint8List file = await pickImage(ImageSource.gallery);
+                  setState(() {
+                    _file = file;
+                  });
+                },
+              ),
+              CupertinoDialogAction(
+                child: const Text("Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final User? user = Provider.of<UserProvider>(context).getUser;
     bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    // return Center(
-    //   child: IconButton(
-    //     onPressed: () {},
-    //     icon: const Icon(Icons.upload_file),
-    //   ),
-    // );
 
-    return Scaffold(
+
+    return _file == null ? Center(
+      child: IconButton(
+        onPressed: () => _selectImage(context),
+        icon: const Icon(Icons.upload_file),
+      ),
+    ) : Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
         leading: IconButton(
@@ -51,13 +134,14 @@ class _AddPostScreenState extends State<AddPostScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                backgroundImage: NetworkImage('https://www.photoshopbuzz.com/wp-content/uploads/change-color-part-of-image-psd4.jpg'),
+              CircleAvatar(
+                backgroundImage: NetworkImage(user!.photoUrl),
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width*0.45,
-                child: const TextField(
-                  decoration: InputDecoration(
+                child: TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
                     hintText: "Write a captain...",
                     border: InputBorder.none,
                   ),
@@ -70,9 +154,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 child: AspectRatio(
                   aspectRatio: 487/451,
                   child: Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage('https://www.photoshopbuzz.com/wp-content/uploads/change-color-part-of-image-psd4.jpg'),
+                        image: MemoryImage(_file!),
                         fit: BoxFit.fill,
                         alignment: FractionalOffset.topCenter
                       )
