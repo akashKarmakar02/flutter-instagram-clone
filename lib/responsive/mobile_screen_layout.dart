@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/models/user.dart' as model;
-import 'package:instagram_clone/provider/user_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:instagram_clone/utils/colors.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({super.key});
@@ -13,14 +10,81 @@ class MobileScreenLayout extends StatefulWidget {
 }
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
+  int _page = 0;
+  final PageController _pageController = PageController();
+
+  void navigationTapped(int page) {
+    _pageController.jumpToPage(page);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _pageController.dispose();
+  }
+
+  void onPageChange(int page) {
+    setState(() {
+      _page = page;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    model.User? user = Provider.of<UserProvider>(context).getUser;
 
     return Scaffold(
-      body: Center(
-        child: Text(user == null ? "Loading": user.username),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: onPageChange,
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          Center(child: Text("Feed")),
+          Center(child: Text("Search")),
+          Center(child: Text("Add Post")),
+          Center(child: Text("Notification")),
+          Center(child: Text("Profile")),
+        ],
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+        backgroundColor: mobileBackgroundColor,
+        onTap: navigationTapped,
+        items: [
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home,
+                color: _page == 0? primaryColor: secondaryColor,
+              ),
+              backgroundColor: primaryColor
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.search,
+                color: _page == 1? primaryColor: secondaryColor,
+              ),
+              backgroundColor: primaryColor
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.add_circle,
+                color: _page == 2? primaryColor: secondaryColor,
+              ),
+              backgroundColor: primaryColor
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.favorite,
+                color: _page == 3? primaryColor: secondaryColor,
+              ),
+              backgroundColor: primaryColor
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.person,
+                color: _page == 4? primaryColor: secondaryColor,
+              ),
+              backgroundColor: primaryColor
+          ),
+        ],
       ),
     );
   }
