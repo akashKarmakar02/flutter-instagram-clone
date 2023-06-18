@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/main.dart';
+import 'package:instagram_clone/screens/login_screen.dart';
 import 'package:instagram_clone/services/AuthService.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/utils/utils.dart';
@@ -55,7 +57,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
     if (result != 'success') {
       showSnackBar(result, context);
+    } else {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MyApp()));
     }
+  }
+
+  void navigateToLogin() {
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
 
   @override
@@ -160,14 +168,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: const Text("Don't Have An Account?"),
+                        child: const Text("Already Have An Account? "),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: navigateToLogin,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: const Text(
-                            'Sign Up',
+                            'Login',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
