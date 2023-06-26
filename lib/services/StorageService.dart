@@ -24,4 +24,5 @@ class StorageService {
 
     return downloadUrl;
   }
+
 }
