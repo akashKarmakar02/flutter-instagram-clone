@@ -8,7 +8,7 @@ class Post {
   final String datePublished;
   final String postUrl;
   final String profImage;
-  final likes;
+  final List likes;
 
   Post({
     required this.description,
