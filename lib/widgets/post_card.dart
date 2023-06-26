@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/provider/user_provider.dart';
@@ -20,12 +21,31 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
+  int commentCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getComment();
+    print(commentCount);
+  }
+
+  void getComment() async {
+    QuerySnapshot snap = await FirebaseFirestore.instance.collection('posts').doc(widget.snap['postId']).collection('comments').get();
+
+    setState(() {
+      commentCount = snap.docs.length;
+    });
+  }
+
+
 
 
   @override
   Widget build(BuildContext context) {
     final User? user = Provider.of<UserProvider>(context).getUser;
     bool liked = widget.snap['likes'].contains(user!.uid);
+
 
 
     return Container(
@@ -91,7 +111,7 @@ class _PostCardState extends State<PostCard> {
             onDoubleTap: () async {
               await FirestoreService().likePost(
                 widget.snap['postId'],
-                widget.snap['uid'],
+                user.uid,
                 widget.snap['likes']
               );
               setState(() {
@@ -144,7 +164,7 @@ class _PostCardState extends State<PostCard> {
                   onPressed: () async {
                     await FirestoreService().likePost(
                         widget.snap['postId'],
-                        widget.snap['uid'],
+                        user.uid,
                         widget.snap['likes']
                     );
                   },
@@ -162,7 +182,7 @@ class _PostCardState extends State<PostCard> {
                     )
                   )
                 ),
-                icon: const Icon(CupertinoIcons.text_bubble),
+                icon: const Icon(CupertinoIcons.chat_bubble),
               ),
               IconButton(
                 onPressed: () {},
@@ -223,9 +243,9 @@ class _PostCardState extends State<PostCard> {
                   onTap: () {},
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: const Text(
-                      "View All 200 comments",
-                      style: TextStyle(
+                    child: Text(
+                      "View All $commentCount comments",
+                      style: const TextStyle(
                         fontSize: 16,
                         color: secondaryColor,
                       ),
