@@ -26,10 +26,11 @@ class FeedScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('posts').snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return const Center(child: CircularProgressIndicator());
           }
 
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 return PostCard(
