@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/provider/user_provider.dart';
+import 'package:instagram_clone/screens/comment_screen.dart';
+import 'package:instagram_clone/services/FirestoreService.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:instagram_clone/widgets/like_animation.dart';
@@ -19,9 +21,12 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
 
+
   @override
   Widget build(BuildContext context) {
     final User? user = Provider.of<UserProvider>(context).getUser;
+    bool liked = widget.snap['likes'].contains(user!.uid);
+
 
     return Container(
       color: mobileBackgroundColor,
@@ -83,7 +88,12 @@ class _PostCardState extends State<PostCard> {
           ),
           // Image Section
           GestureDetector(
-            onDoubleTap: () {
+            onDoubleTap: () async {
+              await FirestoreService().likePost(
+                widget.snap['postId'],
+                widget.snap['uid'],
+                widget.snap['likes']
+              );
               setState(() {
                 isLikeAnimating = true;
               });
@@ -107,7 +117,7 @@ class _PostCardState extends State<PostCard> {
                       isAnimating: isLikeAnimating,
                       smallLike: false,
                       duration: const Duration(
-                        milliseconds: 400,
+                        milliseconds: 100,
                       ),
                       onEnd: () {
                         setState(() {
@@ -128,15 +138,30 @@ class _PostCardState extends State<PostCard> {
           Row(
             children: [
               LikeAnimation(
-                isAnimating: widget.snap["likes"].contains(user!.uid),
+                isAnimating: widget.snap["likes"].contains(user.uid),
                 smallLike: true,
                 child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(CupertinoIcons.heart),
+                  onPressed: () async {
+                    await FirestoreService().likePost(
+                        widget.snap['postId'],
+                        widget.snap['uid'],
+                        widget.snap['likes']
+                    );
+                  },
+                  icon: liked? const Icon(
+                    CupertinoIcons.heart_fill,
+                    color: Colors.red,
+                  ) :const Icon(CupertinoIcons.heart),
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () => Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (context) => CommentsScreen(
+                      snap: widget.snap,
+                    )
+                  )
+                ),
                 icon: const Icon(CupertinoIcons.text_bubble),
               ),
               IconButton(
