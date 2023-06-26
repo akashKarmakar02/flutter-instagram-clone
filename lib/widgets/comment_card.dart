@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CommentCard extends StatefulWidget {
-  const CommentCard({super.key});
+  final Map<String, dynamic> snap;
+  const CommentCard({super.key, required this.snap});
 
   @override
   State<CommentCard> createState() => _CommentCardState();
@@ -19,8 +20,8 @@ class _CommentCardState extends State<CommentCard> {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            backgroundImage: NetworkImage('https://www.photoshopbuzz.com/wp-content/uploads/change-color-part-of-image-psd4.jpg'),
+          CircleAvatar(
+            backgroundImage: NetworkImage(widget.snap['profPic']),
             radius: 18,
           ),
           Expanded(
@@ -31,16 +32,16 @@ class _CommentCardState extends State<CommentCard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   RichText(
-                    text: const TextSpan(
+                    text: TextSpan(
                       children: [
                         TextSpan(
-                          text: 'username',
-                          style: TextStyle(
+                          text: widget.snap['name'],
+                          style: const TextStyle(
                               fontWeight: FontWeight.bold
                           ),
                         ),
                         TextSpan(
-                          text: ' Some description to insert',
+                          text: ' ${widget.snap['comment']}',
                         ),
                       ]
                     )
