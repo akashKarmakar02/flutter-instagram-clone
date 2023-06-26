@@ -41,6 +41,7 @@ class FirestoreService {
     return res;
   }
 
+  // method to like a post
   Future<void> likePost(String postId, String uid, List likes) async {
     try {
       if(likes.contains(uid)) {
@@ -57,6 +58,8 @@ class FirestoreService {
     }
   }
 
+
+  // method to comment in a post
   Future<void> postComment(String postId, String comment, String uid, String name, String profPic) async {
     try {
       if(comment.isNotEmpty) {
@@ -69,6 +72,14 @@ class FirestoreService {
           'datePublished': DateTime.now()
         });
       }
+    } catch(e) {
+      print(e.toString());
+    }
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      await _firebaseFirestore.collection('posts').doc(postId).delete();
     } catch(e) {
       print(e.toString());
     }
