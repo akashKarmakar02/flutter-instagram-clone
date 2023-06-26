@@ -40,4 +40,37 @@ class FirestoreService {
 
     return res;
   }
+
+  Future<void> likePost(String postId, String uid, List likes) async {
+    try {
+      if(likes.contains(uid)) {
+        await _firebaseFirestore.collection('posts').doc(postId).update({
+          'likes': FieldValue.arrayRemove([uid])
+        });
+      } else {
+        await _firebaseFirestore.collection('posts').doc(postId).update({
+          'likes': FieldValue.arrayUnion([uid])
+        });
+      }
+    } catch(e) {
+      print(e.toString());
+    }
+  }
+
+  Future<void> postComment(String postId, String comment, String uid, String name, String profPic) async {
+    try {
+      if(comment.isNotEmpty) {
+        String commentId = const Uuid().v1();
+        await _firebaseFirestore.collection('posts').doc(postId).collection('comments').doc(commentId).set({
+          'profPic': profPic,
+          'name': name,
+          'uid': uid,
+          'comment': comment,
+          'datePublished': DateTime.now()
+        });
+      }
+    } catch(e) {
+      print(e.toString());
+    }
+  }
 }
