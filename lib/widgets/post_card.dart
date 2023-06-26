@@ -27,7 +27,6 @@ class _PostCardState extends State<PostCard> {
   void initState() {
     super.initState();
     getComment();
-    print(commentCount);
   }
 
   void getComment() async {
@@ -43,10 +42,22 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final User? user = Provider.of<UserProvider>(context).getUser;
-    bool liked = widget.snap['likes'].contains(user!.uid);
-
-
+    final User? userNullable = Provider.of<UserProvider>(context).getUser;
+    User user = const User(
+      email: '',
+      uid: '',
+      photoUrl: '',
+      username: '',
+      bio: '',
+      follower: [],
+      following: []
+    );
+    bool liked = false;
+    if (userNullable != null) {
+      user = userNullable;
+      liked = widget.snap['likes'].contains(user.uid);
+    }
+    final FirestoreService firestoreService = FirestoreService();
 
     return Container(
       color: mobileBackgroundColor,
@@ -62,7 +73,7 @@ class _PostCardState extends State<PostCard> {
               horizontal: 16,
             ).copyWith(right: 0),
             child: Row(
-              children: [
+              children: user.uid == widget.snap['uid'] ? [
                 CircleAvatar(
                   radius: 16,
                   backgroundImage: NetworkImage(widget.snap['profImage']),
@@ -87,7 +98,9 @@ class _PostCardState extends State<PostCard> {
                 PullDownButton(
                   itemBuilder: (context) => [
                     PullDownMenuItem(
-                      onTap: () {},
+                      onTap: () async {
+                        await firestoreService.deletePost(widget.snap['postId']);
+                      },
                       title: "Delete",
                       icon: CupertinoIcons.delete,
                       isDestructive: true,
@@ -103,6 +116,31 @@ class _PostCardState extends State<PostCard> {
                     ),
                   ),
                 )
+              ] : [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundImage: NetworkImage(widget.snap['profImage']),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, bottom: 6),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.snap["username"],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
