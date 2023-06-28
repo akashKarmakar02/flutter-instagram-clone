@@ -44,7 +44,8 @@ class _SearchScreenState extends State<SearchScreen> {
             .where('username', isGreaterThanOrEqualTo: _searchController.text)
             .get(),
         builder: (context, snapshot) {
-          if(!snapshot.hasData) {
+
+          if (snapshot.data == null || snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CupertinoActivityIndicator(),
             );
@@ -82,7 +83,12 @@ class _SearchScreenState extends State<SearchScreen> {
                 fit: BoxFit.cover,
               );
             },
-            staggeredTileBuilder: (int index) => StaggeredTile.count((index % 7 == 0)? 2:1, (index % 7 == 0)? 2:1),
+            staggeredTileBuilder: (int index) => StaggeredTile.count(
+                (index % 7 == 0)? 2:1,
+                (index % 7 == 0)? 2:1
+            ),
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
           );
         },
       ),
