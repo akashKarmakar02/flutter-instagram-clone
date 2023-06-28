@@ -1,22 +1,60 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/follow_button.dart';
 
 class ProfileScreen extends StatefulWidget {
-  // final String uid;
-  const ProfileScreen({super.key});
+  final String? uid;
+  const ProfileScreen({super.key, required this.uid});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+
+  Map<String, dynamic>? userData;
+  int? postLength;
+  bool isFollowing = false;
+  bool isLoading = false;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  getData() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      DocumentSnapshot userSnap = await _firestore.collection('users').doc(widget.uid).get();
+      var postSnap = await _firestore.collection('posts').where('uid', isEqualTo: widget.uid).get();
+      setState(() {
+        userData = userSnap.data() as Map<String, dynamic>;
+        postLength = postSnap.docs.length;
+        isFollowing = userData?['followers'].contains(FirebaseAuth.instance.currentUser!.uid);
+        isLoading = false;
+      });
+    } catch(e) {
+      showSnackBar(e.toString(), context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+    return isLoading ? const Center(
+      child: CupertinoActivityIndicator(),
+    ): Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
-        title: const Text("username"),
+        title: Text(userData?['username']),
         centerTitle: false,
       ),
       body: ListView(
@@ -30,10 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       backgroundColor: Colors.grey,
                       backgroundImage: NetworkImage(
-                          'https://www.photoshopbuzz.com/wp-content/uploads/change-color-part-of-image-psd4.jpg',
+                          userData!['photoUrl'],
                       ),
                       radius: 40,
                     ),
@@ -44,9 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          buildStateColumn(20, "posts"),
-                          buildStateColumn(150, "followers"),
-                          buildStateColumn(30, "following"),
+                          buildStateColumn(postLength!, "posts"),
+                          buildStateColumn(userData!["followers"].length, "followers"),
+                          buildStateColumn(userData!["following"].length, "following"),
                         ],
                       ),
                     ),
@@ -55,9 +93,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(top: 15),
-                  child: const Text(
-                    "username",
-                    style: TextStyle(
+                  child: Text(
+                    userData?['username'] ?? "username",
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold
                     ),
                   ),
@@ -65,22 +103,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(top: 1),
-                  child: const Text(
-                    "Some description"
+                  child: Text(
+                    userData?['bio'] ?? "Some description"
                   ),
                 ),
-                FollowButton(
+                FirebaseAuth.instance.currentUser?.uid == widget.uid ? FollowButton(
                   backgroundColor: Colors.grey[850]!,
                   text: "Edit Profile",
                   borderColor: Colors.grey[850]!,
                   textColor: primaryColor,
                   function: () {},
+                ) : isFollowing ? FollowButton(
+                  backgroundColor: Colors.grey[850]!,
+                  text: "Unfollow",
+                  borderColor: Colors.grey[850]!,
+                  textColor: primaryColor,
+                  function: () {},
+                ) : FollowButton(
+                  backgroundColor: Colors.blue,
+                  text: "Follow",
+                  borderColor: Colors.blue,
+                  textColor: Colors.white,
+                  function: () {},
                 )
               ],
             ),
           ),
-          const Divider(
-            color: Colors.grey,
+          Divider(
+            color: Colors.grey[700]!,
+          ),
+          FutureBuilder(
+            future: _firestore.collection('posts').where('uid', isEqualTo: widget.uid).get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CupertinoActivityIndicator()
+                );
+              }
+              return GridView.builder(
+                shrinkWrap: true,
+                itemCount: snapshot.data!.docs.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 5,
+                  mainAxisSpacing: 1.5,
+                  childAspectRatio: 1,
+                ),
+                itemBuilder: (context, index) {
+                  DocumentSnapshot snap = snapshot.data!.docs[index];
+                  return Container(
+                    child: Image(
+                      image: NetworkImage(
+                        snap['postUrl']
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              );
+            },
           )
         ],
       ),
