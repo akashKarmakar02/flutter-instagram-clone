@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/models/post.dart';
+import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/services/StorageService.dart';
 import 'package:uuid/uuid.dart';
 
@@ -82,6 +83,30 @@ class FirestoreService {
       await _firebaseFirestore.collection('posts').doc(postId).delete();
     } catch(e) {
       print(e.toString());
+    }
+  }
+
+  Future<void> followUser(
+    String uid,
+    String followId
+  ) async {
+    var snap = await _firebaseFirestore.collection('users').doc(uid).get();
+    List following = snap.data()!['following'];
+    if (following.contains(followId)) {
+      await _firebaseFirestore.collection('users').doc(uid).update({
+        'following': FieldValue.arrayRemove([followId])
+      });
+
+      await _firebaseFirestore.collection('users').doc(followId).update({
+        'followers': FieldValue.arrayRemove([uid])
+      });
+    } else {
+      await _firebaseFirestore.collection('users').doc(uid).update({
+        'following': FieldValue.arrayUnion([followId])
+      });
+      await _firebaseFirestore.collection('users').doc(followId).update({
+        'followers': FieldValue.arrayUnion([uid])
+      });
     }
   }
 }
