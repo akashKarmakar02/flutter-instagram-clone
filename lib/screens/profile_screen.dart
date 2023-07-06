@@ -2,9 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/provider/user_provider.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/follow_button.dart';
+import 'package:provider/provider.dart';
+import 'package:instagram_clone/models/user.dart' as model;
+import 'package:instagram_clone/services/FirestoreService.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? uid;
@@ -20,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? postLength;
   bool isFollowing = false;
   bool isLoading = false;
+  int followers = 0;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
@@ -39,6 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         userData = userSnap.data() as Map<String, dynamic>;
         postLength = postSnap.docs.length;
         isFollowing = userData?['followers'].contains(FirebaseAuth.instance.currentUser!.uid);
+        followers = userData!['followers'].length;
         isLoading = false;
       });
     } catch(e) {
@@ -48,6 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    model.User user = Provider.of<UserProvider>(context).getUser!;
 
     return isLoading ? const Center(
       child: CupertinoActivityIndicator(),
@@ -83,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           buildStateColumn(postLength!, "posts"),
-                          buildStateColumn(userData!["followers"].length, "followers"),
+                          buildStateColumn(followers, "followers"),
                           buildStateColumn(userData!["following"].length, "following"),
                         ],
                       ),
@@ -118,13 +125,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   text: "Unfollow",
                   borderColor: Colors.grey[850]!,
                   textColor: primaryColor,
-                  function: () {},
+                  function: () async {
+                    await FirestoreService().followUser(FirebaseAuth.instance.currentUser!.uid, userData!['uid']);
+                    setState(() {
+                      isFollowing = false;
+                      followers--;
+                    });
+                  },
                 ) : FollowButton(
                   backgroundColor: Colors.blue,
                   text: "Follow",
                   borderColor: Colors.blue,
                   textColor: Colors.white,
-                  function: () {},
+                  function: () async {
+                    await FirestoreService().followUser(user.uid, userData!['uid']);
+                    setState(() {
+                      isFollowing = true;
+                      followers++;
+                    });
+                  },
                 )
               ],
             ),
@@ -141,6 +160,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               }
               return GridView.builder(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 shrinkWrap: true,
                 itemCount: snapshot.data!.docs.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -151,13 +173,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 itemBuilder: (context, index) {
                   DocumentSnapshot snap = snapshot.data!.docs[index];
-                  return Container(
-                    child: Image(
-                      image: NetworkImage(
-                        snap['postUrl']
-                      ),
-                      fit: BoxFit.cover,
+                  return Image(
+                    image: NetworkImage(
+                      snap['postUrl']
                     ),
+                    fit: BoxFit.cover,
                   );
                 },
               );
